@@ -3,11 +3,11 @@ const vntkit = require("vnt-kit");
 const Tx = require("ethereumjs-tx");
 const fs = require("fs");
 
-let contractAddress = "0x28e463335b3c68a5ed9c27ff3c17b03e77d36627"
+let contractAddress = "0x8587dd06168cb0a21f3ea96377bd20209885b08b"
 
 console.log("连接RPC服务器...")
 const vnt = new Vnt();
-vnt.setProvider(new vnt.providers.HttpProvider("http://47.111.100.232:8880"));
+vnt.setProvider(new vnt.providers.HttpProvider("http://47.99.178.160:8880"));
 console.log("正在解析密钥...")
 let keyFile = "./key"
 let keyPassword = ""
@@ -15,9 +15,10 @@ let keyContent = fs.readFileSync(keyFile).toString("utf-8")
 let account = vntkit.account.decrypt(keyContent, keyPassword, false)
 console.log("读取合约API...")
 let abiFile = "./contract.abi"
+let codeFile = "./contract.compress"
 let abiContent = fs.readFileSync(abiFile).toString("utf-8")
 let abi = JSON.parse(abiContent)
-let contract = vnt.core.contract(abi)
+let contract = vnt.core.contract(abi).codeFile(codeFile)
 
 function transfer(methodName, args) {
     let data = contract.packFunctionData(methodName, args);
@@ -96,7 +97,7 @@ function watch(res, eventName) {
     }
     event.watch(function (error, result) {
         if (!error) {
-            res.send(JSON.stringify(result))
+            res.send(result)
         }
     });
 
@@ -105,9 +106,28 @@ function watch(res, eventName) {
     })
 }
 
+function getAddress() {
+    return account.address
+}
+
+function getBalance() {
+    return vnt.core.getBalance(account.address)
+}
+
+function estimateGas(method, args) {
+    let data = contract.packFunctionData(method, args)
+    return vnt.core.estimateGas({
+        to: contractAddress,
+        chainId: 2,
+        data: data
+    })
+}
 
 module.exports = {
     transfer,
     call,
-    watch
+    watch,
+    getAddress,
+    getBalance,
+    estimateGas
 }

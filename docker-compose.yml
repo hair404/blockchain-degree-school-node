@@ -1,0 +1,10 @@
+version: '3'
+services:
+  degree-school-node:
+    image: "thttnt/degree-school-node"
+    command: bash -c "
+      cd /root/degree-school-node
+      && node src/index.js
+      "
+    ports:
+      - "3000:3000"
